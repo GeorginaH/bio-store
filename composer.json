@@ -10,10 +10,27 @@
     },
     "require": {
         "composer/installers": "^1.0.24",
-        "drupal/core": "self.version",
-        "drupal/core-project-message": "self.version",
-        "drupal/core-vendor-hardening": "self.version",
-        "wikimedia/composer-merge-plugin": "^1.4"
+        "cweagans/composer-patches": "~1.0",
+        "drupal-composer/drupal-scaffold": "~2",
+        "drupal/admin_toolbar": "^2.0",
+        "drupal/antibot": "^1.0",
+        "drupal/auto_entitylabel": "^3.0-beta2",
+        "drupal/bootstrap": "~3",
+        "drupal/captcha": "1.x-dev",
+        "drupal/components": "^1.0",
+        "drupal/config_installer": "~1",
+        "drupal/console": "~1.0",
+        "wikimedia/composer-merge-plugin": "^1.4",
+        "drush/drush": "^9.5",
+        "league/csv": "^9",
+        "nesbot/carbon": "^2.27",
+        "phpoffice/phppresentation": "^0.8.0",
+        "phpoffice/phpspreadsheet": "^1.3",
+        "platformsh/config-reader": "^2.2",
+        "vlucas/phpdotenv": "^3.4",
+        "webmozart/path-util": "^2.3",
+        "zaporylie/composer-drupal-optimizations": "^1.1",
+        "drupal/core": "^8.8"
     },
     "require-dev": {
         "behat/mink": "1.7.x-dev",
@@ -33,7 +50,10 @@
         "symfony/filesystem": "~3.4.0",
         "symfony/finder": "~3.4.0",
         "symfony/lock": "~3.4.0",
-        "symfony/browser-kit": "^3.4.0"
+        "symfony/browser-kit": "^3.4.0",
+        "drupal/devel": "~2",
+        "drupal/devel_entity_updates": "^1.0@RC",
+        "webflo/drupal-core-require-dev": "^8.8"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -55,67 +75,42 @@
             "merge-extra": false
         },
         "installer-paths": {
-            "core": ["type:drupal-core"],
-            "libraries/{$name}": ["type:drupal-library"],
-            "modules/contrib/{$name}": ["type:drupal-module"],
-            "profiles/contrib/{$name}": ["type:drupal-profile"],
-            "themes/contrib/{$name}": ["type:drupal-theme"],
+            "web/core": ["type:drupal-core"],
+            "web/libraries/{$name}": ["type:drupal-library"],
+            "web/modules/contrib/{$name}": ["type:drupal-module"],
+            "web/profiles/contrib/{$name}": ["type:drupal-profile"],
+            "web/themes/contrib/{$name}": ["type:drupal-theme"],
             "drush/Commands/contrib/{$name}": ["type:drupal-drush"],
             "modules/custom/{$name}": ["type:drupal-custom-module"],
-            "themes/custom/{$name}": ["type:drupal-custom-theme"]
-        },
-        "drupal-core-project-message": {
-            "post-install-cmd-message": [
-                "<bg=blue;fg=white>drupal/drupal</>: This package is meant for core development,",
-                "               and not intended to be used for production sites.",
-                "               See: https://www.drupal.org/node/3082474"
-            ],
-            "post-create-project-cmd-message": [
-                "<bg=red;fg=white>drupal/drupal</>: This package is meant for core development,",
-                "               and not intended to be used for production sites.",
-                "               See: https://www.drupal.org/node/3082474"
-            ]
+            "web/themes/custom/{$name}": ["type:drupal-custom-theme"]
         }
     },
     "autoload": {
-        "psr-4": {
-            "Drupal\\Core\\Composer\\": "core/lib/Drupal/Core/Composer"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Drupal\\Composer\\": "composer"
-        }
+      "classmap": [
+        "scripts/composer/ScriptHandler.php"
+      ]
     },
     "scripts": {
-        "pre-install-cmd": "Drupal\\Composer\\Composer::ensureComposerVersion",
-        "pre-update-cmd": "Drupal\\Composer\\Composer::ensureComposerVersion",
-        "pre-autoload-dump": "Drupal\\Core\\Composer\\Composer::preAutoloadDump",
-        "drupal-phpunit-upgrade-check": "Drupal\\Core\\Composer\\Composer::upgradePHPUnit",
-        "drupal-phpunit-upgrade": "@composer update phpunit/phpunit symfony/phpunit-bridge phpspec/prophecy symfony/yaml --with-dependencies --no-progress",
-        "post-update-cmd": [
-            "Drupal\\Composer\\Composer::generateMetapackages",
-            "Drupal\\Composer\\Composer::ensureBehatDriverVersions"
+        "drupal-scaffold": "DrupalComposer\\DrupalScaffold\\Plugin::scaffold",
+        "pre-install-cmd": [
+            "DrupalProject\\composer\\ScriptHandler::checkComposerVersion"
         ],
-        "phpcs": "phpcs --standard=core/phpcs.xml.dist --runtime-set installed_paths $($COMPOSER_BINARY config vendor-dir)/drupal/coder/coder_sniffer --",
-        "phpcbf": "phpcbf --standard=core/phpcs.xml.dist --runtime-set installed_paths $($COMPOSER_BINARY config vendor-dir)/drupal/coder/coder_sniffer --"
+        "pre-update-cmd": [
+            "DrupalProject\\composer\\ScriptHandler::checkComposerVersion"
+        ],
+        "post-install-cmd": [
+            "DrupalProject\\composer\\ScriptHandler::createRequiredFiles"
+        ],
+        "post-update-cmd": [
+            "DrupalProject\\composer\\ScriptHandler::createRequiredFiles"
+        ],
+        "phpcs": "phpcs --standard=web/core/phpcs.xml.dist --runtime-set installed_paths $($COMPOSER_BINARY config vendor-dir)/drupal/coder/coder_sniffer --",
+        "phpcbf": "phpcbf --standard=web/core/phpcs.xml.dist --runtime-set installed_paths $($COMPOSER_BINARY config vendor-dir)/drupal/coder/coder_sniffer --"
     },
     "repositories": [
         {
             "type": "composer",
             "url": "https://packages.drupal.org/8"
-        },
-        {
-            "type": "path",
-            "url": "core"
-        },
-        {
-            "type": "path",
-            "url": "composer/Plugin/ProjectMessage"
-        },
-        {
-            "type": "path",
-            "url": "composer/Plugin/VendorHardening"
         }
     ]
 }
