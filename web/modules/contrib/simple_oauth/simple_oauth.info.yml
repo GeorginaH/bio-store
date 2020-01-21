@@ -1,0 +1,14 @@
+name: Simple OAuth
+type: module
+description: 'The OAuth 2.0 Authorization Framework'
+core: 8.x
+package: Authentication
+configure: oauth2_token.settings
+dependencies:
+  - drupal:serialization
+  - consumers:consumers
+
+# Information added by Drupal.org packaging script on 2019-09-02
+version: '8.x-4.0'
+project: 'simple_oauth'
+datestamp: 1567401798
